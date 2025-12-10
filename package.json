@@ -1,0 +1,19 @@
+{
+  "name": "x-o-dos",
+  "version": "1.0.0",
+  "description": "Tic-Tac-Toe game with DOS/retro terminal aesthetic",
+  "private": true,
+  "workspaces": [
+    "contracts",
+    "api",
+    "frontend"
+  ],
+  "scripts": {
+    "test": "npm run test:all",
+    "test:all": "npm test --workspaces",
+    "build:all": "npm run build --workspaces"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

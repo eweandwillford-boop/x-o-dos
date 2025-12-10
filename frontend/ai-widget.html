@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XoDos AI Widget</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+        }
+
+        .box {
+            border: 1px solid #0f0;
+            padding: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        input,
+        button {
+            background: #000;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 5px;
+            width: 100%;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+
+        button:hover {
+            background: #0f0;
+            color: #000;
+            cursor: pointer;
+        }
+
+        #status {
+            margin-top: 10px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="box">
+        <h2>> X-O-DOS INTEGRATION</h2>
+        <div id="wallet-section">
+            <button id="connectBtn">CONNECT WALLET</button>
+            <p id="accountDisplay">NOT CONNECTED</p>
+        </div>
+
+        <div id="task-section" style="display:none; border-top: 1px dashed #0f0; padding-top: 10px; margin-top: 10px;">
+            <label>> TASK DESCRIPTION (OR IPFS URI):</label>
+            <input type="text" id="descInput" placeholder="ipfs://... or 'Fix Bug'">
+
+            <label>> REWARD (MATIC):</label>
+            <input type="number" id="rewardInput" step="0.001" value="0.01">
+
+            <button id="createBtn">EXECUTE: CREATE_TASK</button>
+        </div>
+
+        <div id="status"></div>
+    </div>
+
+    <!-- Import Ethers.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+
+    <script>
+        // Configuration
+        const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Localhost default, update for Mumbai
+
+        // Minimal ABI matching XoDos.sol implementation
+        const ABI = [
+            "function createTask(string memory _description) public payable",
+            "event TaskCreated(uint256 id, address creator, uint256 reward, string description)"
+        ];
+
+        let provider, signer, contract;
+
+        const connectBtn = document.getElementById('connectBtn');
+        const createBtn = document.getElementById('createBtn');
+        const statusDiv = document.getElementById('status');
+        const accountDisplay = document.getElementById('accountDisplay');
+        const taskSection = document.getElementById('task-section');
+
+        function log(msg) {
+            statusDiv.innerText = `> ${msg}`;
+            console.log(msg);
+        }
+
+        async function connectWallet() {
+            if (!window.ethereum) {
+                log("ERROR: MetaMask not detected.");
+                return;
+            }
+
+            try {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = provider.getSigner();
+                const address = await signer.getAddress();
+
+                contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+                accountDisplay.innerText = `CONNECTED: ${address.substring(0, 6)}...${address.substring(38)}`;
+                connectBtn.style.display = 'none';
+                taskSection.style.display = 'block';
+                log("SYSTEM READY.");
+            } catch (err) {
+                log("CONNECTION FAILED: " + err.message);
+            }
+        }
+
+        async function createTask() {
+            if (!contract) return;
+
+            const description = document.getElementById('descInput').value;
+            const rewardEth = document.getElementById('rewardInput').value;
+
+            if (!description || !rewardEth) {
+                log("ERROR: Missing inputs.");
+                return;
+            }
+
+            try {
+                log("INITIATING TRANSACTION...");
+                const tx = await contract.createTask(description, {
+                    value: ethers.utils.parseEther(rewardEth)
+                });
+                log(`TX SENT: ${tx.hash}`);
+
+                const receipt = await tx.wait();
+                log(`CONFIRMED. BLOCK: ${receipt.blockNumber}`);
+            } catch (err) {
+                console.error(err);
+                log("TX FAILED: " + (err.reason || err.message));
+            }
+        }
+
+        connectBtn.addEventListener('click', connectWallet);
+        createBtn.addEventListener('click', createTask);
+
+    </script>
+
+</body>
+
+</html>
