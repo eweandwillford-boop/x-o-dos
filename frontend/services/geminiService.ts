@@ -4,7 +4,8 @@ import { Asset } from "../types";
 
 // Initialize Gemini
 // const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-const ai = { models: { generateContent: async () => ({ text: "Mock Analysis" }) } };
+// Allow arguments in the mock function to satisfy TypeScript
+const ai = { models: { generateContent: async (_params: any) => ({ text: "Mock Analysis" }) } };
 
 const MOCK_ANALYSES = [
   "This asset demonstrates strong fundamentals with a consistent upward trend in the last quarter. The issuer's recent expansion into new markets signals potential for long-term growth. However, investors should be mindful of sector-specific regulatory changes that could impact short-term volatility. Suitable for growth-oriented portfolios.",

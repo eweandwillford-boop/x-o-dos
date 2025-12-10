@@ -21,9 +21,14 @@ const firebaseConfig = {
 // We check if the key is the default placeholder. If so, we mock the firebase instance to prevent crashes.
 const isConfigured = firebaseConfig.apiKey !== "AIzaSyD-REPLACE_ME_WITH_REAL_KEY";
 
-let app;
-let auth;
-let db;
+// Define types to avoid implicit any errors
+import { Auth } from "firebase/auth";
+import { Firestore } from "firebase/firestore";
+import { FirebaseApp } from "firebase/app";
+
+let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
+let db: Firestore | undefined;
 
 if (isConfigured) {
   try {
